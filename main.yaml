@@ -1,0 +1,28 @@
+---
+- name: Machine Config Build
+  hosts: localhost
+  tasks:
+
+    - name: Get certs to blacklist
+      find:
+        paths: ./blacklisted_certs
+        patterns: "*"
+        recurse: no
+        file_type: file
+      register: BLACKLISTED
+
+    - name: Get certs to whitelist
+      find:
+        paths: ./whitelisted_certs
+        patterns: "*"
+        recurse: no
+        file_type: file
+      register: WHITELISTED
+
+    - name: Generate MachineConfig
+      template:
+        src: ca_cleanup_machineconfig.yaml.j2
+        dest: "99-{{ item }}-ca-trustlist.yaml"
+      loop:
+        - master
+        - worker

@@ -1,0 +1,26 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: {{ item }}
+  name: 99-{{ item }}-ca-trustlist
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+{% for item in BLACKLISTED.files %}
+      - path: /etc/pki/ca-trust/source/blacklist/{{ item.path | basename}}
+        contents:
+          source: data:text/plain;charset=utf-8;base64,{{ lookup('file', item.path) | b64encode }}
+        mode: 0644
+        overwrite: true
+{% endfor %}
+{% for item in WHITELISTED.files %}
+      - path: /etc/pki/ca-trust/source/anchors/{{ item.path | basename}}
+        contents:
+          source: data:text/plain;charset=utf-8;base64,{{ lookup('file', item.path) | b64encode }}
+        mode: 0644
+        overwrite: true
+{% endfor %}
